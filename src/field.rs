@@ -74,6 +74,19 @@ fn s_to_kind(s : &str) -> u8 {
 	panic!()
 }
 
+pub fn s_to_kind_safe(s : &str) -> Result<u8,()> {
+	for i in 0 .. 6 {
+		if BLACK[i] == s {
+			return Ok(i as u8)
+		}
+	}
+	return Err(())
+}
+
+pub fn kind_to_s(k : u8) -> String {
+	return BLACK[k as usize].to_string();
+}
+
 impl Fig {
 	pub fn x(&self) -> i8 {
 		self.cell / 8

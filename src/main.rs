@@ -7,6 +7,7 @@ extern crate rustc_serialize;
 mod field;
 mod steps;
 mod cmdui;
+mod field_js;
 use field::*;
 use std::env;
 use std::io;
@@ -28,7 +29,8 @@ fn help() {
 		"--- MODES ---",
 		"-af <(w|b)>      - active figures for color",
 		"-sf <cell>       - steps for figure in cell. Sample: '-sf d6'",
-		"-m  <(w|b)>      - make AI move for color"
+		"-m  <(w|b)>      - make AI move for color",
+		"-rp              - just show figures"
 	];
 	for line in lines {
 		println!("{}", line);
@@ -49,7 +51,7 @@ fn main() {
 		return;
 	}
 	let args = cmdui::read_args(&args);
-	//println!("{:?}",args);
+	// fill field
 	let field = match args.input {
 		None => Field::new(),
 		Some(data) => {
@@ -69,14 +71,34 @@ fn main() {
 						None => cmdui::DataFormat::Text
 					};
 			match f {
-				//cmdui::DataFormat::Text =>
-				_ => panic!()
+				cmdui::DataFormat::Text => panic!(),
+				cmdui::DataFormat::Json =>
+					match field_js::json2field(&data) {
+						Ok(f) => f,
+						Err(e) => {
+							println!("{}\"error\": \"{}\"{}", '{', e, '}');
+							return;
+						}
+					},
+				_ => {
+					println!("input must be text or json");
+					return;
+				}
 			}
 		}
 	};
+	// make result
 	match args.cmd {
 		cmdui::Cmd::Help =>
 			help(),
+		cmdui::Cmd::JustShow => {
+			match args.out_format {
+				None => field.print(),
+				Some(cmdui::DataFormat::Graphic) => field.print(),
+				Some(cmdui::DataFormat::Json) => println!("{}", field_js::field2json(&field)),
+				_ => panic!()
+			}
+		},
 		cmdui::Cmd::MovesFor(cell) => {
 			let mut steps = vec![];
 			let mut found = None;

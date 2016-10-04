@@ -17,6 +17,7 @@ pub enum Cmd {
 	ActiveFig(Color),
 	// help window
 	Help,
+	JustShow,
 	Error(String)
 }
 
@@ -126,7 +127,14 @@ pub fn read_args(src : &Vec<String>) -> Args {
 							out.cmd = Cmd::MakeMove(clr);
 							return out;
 						},
-						_ => ()
+						_ =>
+							match look_for(src, "rp", false) {
+								Either::Left(true) => {
+									out.cmd = Cmd::JustShow;
+									return out;
+								},
+								_ => ()
+							}
 					}
 			}
 	}
